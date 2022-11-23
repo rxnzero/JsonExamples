@@ -6,12 +6,14 @@ import java.util.Iterator;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JacksonTest {
@@ -21,16 +23,24 @@ public class JacksonTest {
 	}
 	
 	public static void main(String[] args) {
-//		test(false);
-//		test(true);
-		testPathFind();
-		testSetValues();
+		test(false);
+		test(true);
+//		testPathFind();
+//		testSetValues();
 	}
 	
 	public static void testSetValues() {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+		
+//		mapper = mapper.disable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+//				.enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)
+//				.setNodeFactory(JsonNodeFactory.withExactBigDecimals(true));
+		
+		ObjectNode message = mapper.createObjectNode();
 		ObjectNode root = mapper.createObjectNode();
+		
+		message.set("layoutname",root);
 		
 		ObjectNode contact = mapper.createObjectNode();       
 		contact.put("tel", "010-1111-2222");        
@@ -61,18 +71,21 @@ public class JacksonTest {
 		students.addAll(Arrays.asList(element2, element3));         
 		root.set("students", students);
 			
-//		System.out.println(root.toString());
-		System.out.println(root.toPrettyString());
+		System.out.println("===== message.toString()");
+		System.out.println(message.toString());
+		System.out.println("===== message.toPrettyString()");
+		System.out.println(message.toPrettyString());
 	}
 
 	public static void testPathFind() {
 		String jsonString = null;
-		jsonString ="{"
+		jsonString ="{\"layout\":{"
 				+"\n  \"id\": 1,"
 				+"\n  \"name\": {"
 				+"\n    \"first\": \"DongHoon\","
 				+"\n    \"last\": \"Lee\""
 				+"\n  },"
+				+"  \"StrArray\": [\"STR1\", \"STR2\",\"STR3\"] , "
 				+"\n  \"contact\": ["
 				+"\n    {"
 				+"\n      \"type\": \"phone/home\","
@@ -83,23 +96,23 @@ public class JacksonTest {
 				+"\n      \"ref\": \"222-222-2222\""
 				+"\n    }"
 				+"\n  ]"
-				+"\n}";
+				+"\n} }";
 //		jsonString = "{\"id\":\"1234\",\"name\":\"dhlee\",\"amount\":1234567890.01234567890123456789}";
 		System.out.println(jsonString);
 		
+		System.out.println("-----------------> traverse -----------------> ");
 		traverse(jsonString);
+		System.out.println("<----------------- traverse <----------------- ");
 		
-		String path = "name1";
+		String path = "/layout/id";
 		System.out.println(path +"=" + testPath(jsonString, path));
 		
-		path = "name";
+		path = "/layout/StrArray/0";
 		System.out.println(path +"=" + testPath(jsonString, path));
 		
-		path = "name/first";
-		System.out.println(path +"=" + testPath(jsonString, path));
+		path = "/layout/contact/0/type";
+		System.out.println(path +"=" + testPath(jsonString, path));		
 		
-		path = "contact/type";
-		System.out.println(path +"=" + testPath(jsonString, path));
 	}
 	
 	public static void test(boolean isBigDecimal) {
@@ -107,12 +120,20 @@ public class JacksonTest {
 		    // create a reader
 		    String data = "{\"id\":\"1234\", \"name\":\"dhlee\", \"amount\":1234567890.01234567890123456789}";
 		    
-		    System.out.println("Json String : " + data);
+		    System.out.println("\nJson String : " + data);
 		    
 		    ObjectMapper mapper = new ObjectMapper();
 		    
-		    if(isBigDecimal) mapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
-		    
+		    if(isBigDecimal) {
+//		    	mapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+				mapper = mapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+						.enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)
+						.setNodeFactory(JsonNodeFactory.withExactBigDecimals(true));
+				System.out.println("isBigDecimal : " + isBigDecimal);
+		    }
+		    else {
+		    	System.out.println("isBigDecimal : " + isBigDecimal);
+		    }
 		    //read customer.json file into tree model
 		    JsonFactory factory = mapper.getFactory();
 		    JsonParser parser = factory.createParser(data);
@@ -138,7 +159,33 @@ public class JacksonTest {
 		    JsonFactory factory = mapper.getFactory();
 		    JsonParser parser = factory.createParser(jsonString);
 		    JsonNode root = mapper.readTree(parser);
-		    String[] paths = path.split("/");
+		    JsonNode node = null;
+		    boolean isFirst = true;
+		    int i = 0;
+		    String findValue = null;
+		    
+		    node = root.at(path);
+		    
+		    if(!node.isMissingNode()) {
+		    	findValue = node.asText();
+		    }
+		    return findValue;
+		} catch (Exception ex) {
+		    ex.printStackTrace();
+		    return null;
+		}
+	}
+	
+	public static String testPath2(String jsonString, String path) {
+		try {
+//		    System.out.println("Json String : " + jsonString);
+		    ObjectMapper mapper = new ObjectMapper();
+		    mapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+		    //read customer.json file into tree model
+		    JsonFactory factory = mapper.getFactory();
+		    JsonParser parser = factory.createParser(jsonString);
+		    JsonNode root = mapper.readTree(parser);
+		    String[] paths = path.split("[.]");
 		    JsonNode node = null;
 		    boolean isFirst = true;
 		    int i = 0;
@@ -146,12 +193,12 @@ public class JacksonTest {
 		    	if(isFirst) {
 		    		node = root.path(p);
 		    		isFirst = false;
-		    		System.out.println(i++ +" : " + node.isMissingNode());
+		    		System.out.println(p +" isMissingNode=" + node.isMissingNode());
 		    		if(node.isMissingNode()) break;
 		    	}
 		    	else {
 		    		node = node.path(p);
-		    		System.out.println(i++ +" : " + node.isMissingNode());
+		    		System.out.println(p +" isMissingNode=" + node.isMissingNode());
 		    		if(node.isMissingNode()) break;
 		    	}
 		    }
@@ -165,7 +212,6 @@ public class JacksonTest {
 		    return null;
 		}
 	}
-	
 	public static void traverse(String jsonString) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
@@ -177,29 +223,29 @@ public class JacksonTest {
 		    JsonNode root = mapper.readTree(parser);
 		    
 		    traverse(root, "");
-            // Get id
-            long id = root.path("id").asLong();
-            System.out.println("id : " + id);
-
-            // Get Name
-            JsonNode nameNode = root.path("name");
-            if (!nameNode.isMissingNode()) {        // if "name" node is exist
-                System.out.println("firstName : " + nameNode.path("first").asText());
-                System.out.println("middleName : " + nameNode.path("middle").asText());
-                System.out.println("lastName : " + nameNode.path("last").asText());
-            }
-
-            // Get Contact
-            JsonNode contactNode = root.path("contact");
-            if (contactNode.isArray()) {
-                System.out.println("isArray = " + contactNode.isArray());
-                for (JsonNode node : contactNode) {
-                    String type = node.path("type").asText();
-                    String number = node.path("number").asText();
-                    System.out.println("type : " + type);
-                    System.out.println("number : " + number);
-                }
-            }
+//            // Get id
+//            long id = root.path("id").asLong();
+//            System.out.println("id : " + id);
+//
+//            // Get Name
+//            JsonNode nameNode = root.path("name");
+//            if (!nameNode.isMissingNode()) {        // if "name" node is exist
+//                System.out.println("firstName : " + nameNode.path("first").asText());
+//                System.out.println("middleName : " + nameNode.path("middle").asText());
+//                System.out.println("lastName : " + nameNode.path("last").asText());
+//            }
+//
+//            // Get Contact
+//            JsonNode contactNode = root.path("contact");
+//            if (contactNode.isArray()) {
+//                System.out.println("isArray = " + contactNode.isArray());
+//                for (JsonNode node : contactNode) {
+//                    String type = node.path("type").asText();
+//                    String number = node.path("number").asText();
+//                    System.out.println("type : " + type);
+//                    System.out.println("number : " + number);
+//                }
+//            }
         } catch (JsonGenerationException e) {
             e.printStackTrace();
         } catch (JsonMappingException e) {
@@ -222,7 +268,7 @@ public class JacksonTest {
 	        ArrayNode arrayNode = (ArrayNode) root;
 	        for(int i = 0; i < arrayNode.size(); i++) {
 	            JsonNode arrayElement = arrayNode.get(i);
-	            traverse(arrayElement, parentName);
+	            traverse(arrayElement, parentName+"["+ i+"]");
 	        }
 	    } else {
 	        System.out.println("@" + parentName + "=" +root.asText());
