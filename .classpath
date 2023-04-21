@@ -4,7 +4,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/json-simple-1.1.1-repack1.0.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-annotations-2.13.3.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-core-2.13.3.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-databind-2.13.3.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-core-2.13.3.jar" sourcepath="C:/Users/elink/AppData/Local/Temp/.org.sf.feeling.decompiler1681975430160/source/jackson-core-2.13.3-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-databind-2.13.3.jar" sourcepath="C:/Users/elink/AppData/Local/Temp/.org.sf.feeling.decompiler1681975430160/source/jackson-databind-2.13.3-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

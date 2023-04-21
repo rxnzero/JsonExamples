@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -24,18 +25,21 @@ public class JacksonTest {
 	
 	public static void main(String[] args) {
 		test(false);
-		test(true);
+//		test(true);
 //		testPathFind();
 //		testSetValues();
 	}
 	
 	public static void testSetValues() {
 		ObjectMapper mapper = new ObjectMapper();
+		mapper.getJsonFactory().setCharacterEscapes(new CustomCharacterEscapes());
+		mapper.writer(new CustomCharacterEscapes());
 		mapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
 		
 //		mapper = mapper.disable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
 //				.enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)
 //				.setNodeFactory(JsonNodeFactory.withExactBigDecimals(true));
+		
 		
 		ObjectNode message = mapper.createObjectNode();
 		ObjectNode root = mapper.createObjectNode();
@@ -65,14 +69,16 @@ public class JacksonTest {
 		ObjectNode element3 = mapper.createObjectNode();
 		element3.put("id", 3);        
 		element3.put("name", "Sam");         
-		
+		element3.put("url", "http://www.test.com?code=123");         
+		element3.put("code", "{\"sample\":\"json-code\"}");
+        
 		ArrayNode students = mapper.createArrayNode();        
 		students.add(element1);        
 		students.addAll(Arrays.asList(element2, element3));         
 		root.set("students", students);
 			
 		System.out.println("===== message.toString()");
-		System.out.println(message.toString());
+//		System.out.println(message.toString());
 		System.out.println("===== message.toPrettyString()");
 		System.out.println(message.toPrettyString());
 	}
@@ -81,6 +87,7 @@ public class JacksonTest {
 		String jsonString = null;
 		jsonString ="{\"layout\":{"
 				+"\n  \"id\": 1,"
+				+"\n  \"url\": \"http://www.test.com\","
 				+"\n  \"name\": {"
 				+"\n    \"first\": \"DongHoon\","
 				+"\n    \"last\": \"Lee\""
@@ -118,12 +125,14 @@ public class JacksonTest {
 	public static void test(boolean isBigDecimal) {
 		try {
 		    // create a reader
-		    String data = "{\"id\":\"1234\", \"name\":\"dhlee\", \"amount\":1234567890.01234567890123456789}";
+		    String data = "{\"id\":\"1234\", \"name\":\"http://test.com\", \"amount\":1234567890.01234567890123456789}";
 		    
 		    System.out.println("\nJson String : " + data);
 		    
 		    ObjectMapper mapper = new ObjectMapper();
-		    
+		    ObjectWriter writer = mapper.writer(new CustomCharacterEscapes());
+			
+			mapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
 		    if(isBigDecimal) {
 //		    	mapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
 				mapper = mapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
@@ -145,6 +154,15 @@ public class JacksonTest {
 		    System.out.println("asText = " + actualObj.path("amount").asText());
 		    System.out.println("decimalValue = " + actualObj.path("amount").decimalValue());
 		    System.out.println("floatValue = " + actualObj.path("amount").floatValue());
+		    System.out.println("$$ actualObj.toString()\n" + actualObj.toString());
+		    
+		    String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(actualObj);
+		    System.out.println("$$ writerWithDefaultPrettyPrinter\n" + json);
+			
+			json = writer.writeValueAsString(actualObj);
+			System.out.println("$$ CustomCharacterEscapes\n" + json);
+			
+			
 		} catch (Exception ex) {
 		    ex.printStackTrace();
 		}

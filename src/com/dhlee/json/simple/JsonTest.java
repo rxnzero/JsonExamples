@@ -16,10 +16,35 @@ public class JsonTest {
 //		d = Double.MAX_VALUE;
 //		format(d);
 //		
-		jsonTest();
+//		jsonTest();
 		
 //		testMax();
+		
+		testSetUrl();
 	}
+	
+	public static void testSetUrl() {
+		
+//		JSONValue.escapeForwardSlash = false;
+		// JSON 으로 파싱할 문자열
+        String str = "{\"name\" : \"apple\", \"id\" : 1, \"price\" : 1000, \"url-org\":\"http://www.testcode.com\"}";
+ 
+        // JSONParser로 JSONObject로 변환
+        JSONObject jsonObject = (JSONObject) JSONValue.parse(str);
+ 
+        // 추가
+        jsonObject.put("url", "http://www.google.co.kr?code=1");
+        jsonObject.put("code", "{\"sample\":\"json-code\"}");
+        
+        // 변경
+        jsonObject.put("id", 2);
+        jsonObject.replace("name", "banana");
+ 
+        // 삭제
+        jsonObject.remove("price");
+        // 결과 출력
+        System.out.println(jsonObject.toJSONString());        
+    }
 	
 	public static void jsonTest() {
 		String data = "{\"id\":\"1234\",\"name\":\"dhlee\",\"amount\":1234567890.01234567890123456789}";
@@ -34,6 +59,7 @@ public class JsonTest {
 		data = "{\"id\":\"1234\",\"name\":\"dhlee\",\"amount\":1}";
 		test(data);
 	}
+	
 	
 	public static void test(String jsonText) {
 		try {
