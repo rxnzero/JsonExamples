@@ -16,11 +16,11 @@ public class JsonTest {
 //		d = Double.MAX_VALUE;
 //		format(d);
 //		
-//		jsonTest();
+		jsonTest();
 		
 //		testMax();
 		
-		testSetUrl();
+//		testSetUrl();
 	}
 	
 	public static void testSetUrl() {
@@ -70,7 +70,10 @@ public class JsonTest {
 		    
 		    // create parser
 		    JSONObject  parser = (JSONObject)JSONValue.parse(jsonText);
-
+		    
+		    String xml = "<root><name>xml</name></root>";
+		    parser.put("xml", xml);
+		    
 		    System.out.println("Json String : " + parser.toJSONString());
 		    // read customer details
 //		    String id = (String) parser.get("id");

@@ -24,10 +24,10 @@ public class JacksonTest {
 	}
 	
 	public static void main(String[] args) {
-		test(false);
+//		test(false);
 //		test(true);
-//		testPathFind();
-//		testSetValues();
+		testPathFind();
+		testSetValues();
 	}
 	
 	public static void testSetValues() {
@@ -66,11 +66,14 @@ public class JacksonTest {
 		element2.put("id", 2);
 		element2.put("name", "Brian");
 		
+		String xml = "<root><name value=\"val\">xml-name</name></root>";
+		System.out.println(xml);
 		ObjectNode element3 = mapper.createObjectNode();
 		element3.put("id", 3);        
 		element3.put("name", "Sam");         
 		element3.put("url", "http://www.test.com?code=123");         
 		element3.put("code", "{\"sample\":\"json-code\"}");
+		element3.put("xml", xml);
         
 		ArrayNode students = mapper.createArrayNode();        
 		students.add(element1);        
@@ -88,6 +91,7 @@ public class JacksonTest {
 		jsonString ="{\"layout\":{"
 				+"\n  \"id\": 1,"
 				+"\n  \"url\": \"http://www.test.com\","
+				+"\n  \"xml\": \"<root><name value=\\\"val\\\">xml-name</name></root>\","
 				+"\n  \"name\": {"
 				+"\n    \"first\": \"DongHoon\","
 				+"\n    \"last\": \"Lee\""
@@ -113,6 +117,10 @@ public class JacksonTest {
 		
 		String path = "/layout/id";
 		System.out.println(path +"=" + testPath(jsonString, path));
+		
+		path = "/layout/xml";
+		System.out.println(path +"=" + testPath(jsonString, path));
+		
 		
 		path = "/layout/StrArray/0";
 		System.out.println(path +"=" + testPath(jsonString, path));
